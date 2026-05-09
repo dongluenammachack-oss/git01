@@ -710,18 +710,18 @@ td.td-teal{color:#0f766e;font-weight:500;}
                     <td style="text-align:center;font-size:.75rem;font-weight:600;">
                     <?php 
                     if(empty($end)) {
-                        echo '<span style="color:var(--muted);">—</span>';
+                    echo '<span style="color:var(--muted);">—</span>';
                     } else {
-                        $diff_days = round((strtotime($end) - strtotime($today)) / 86400);
-                        if($diff_days < 0) {
-                            echo '<span style="color:#dc2626;font-weight:700;">Expired</span>';
-                        } elseif($diff_days == 0) {
-                            echo '<span style="color:#f59e0b;font-weight:700;">Today</span>';
-                        } elseif($diff_days <= 30) {
-                            echo '<span style="color:#f59e0b;font-weight:700;">' . $diff_days . ' days</span>';
-                        } else {
-                            echo '<span style="color:#059669;font-weight:600;">' . $diff_days . ' days</span>';
-                        }
+                    $diff_days = round((strtotime($end) - strtotime($today)) / 86400);
+                    if($diff_days < 0) {
+                    echo '<span style="color:#dc2626;font-weight:700;">Expired</span>';
+                    } elseif($diff_days == 0) {
+                    echo '<span style="color:#f59e0b;font-weight:700;">Today</span>';
+                    } elseif($diff_days <= 30) {
+                    echo '<span style="color:#f59e0b;font-weight:700;">' . $diff_days . ' days</span>';
+                    } else {
+                    echo '<span style="color:#059669;font-weight:600;">' . $diff_days . ' days</span>';
+                    }
                     }
                     ?>
                     </td>
@@ -776,122 +776,408 @@ td.td-teal{color:#0f766e;font-weight:500;}
                                             
                                             
                                             <?php
-                                            //  ACCOUNT FORM
+                                            // ====================================================
+                                            //  ACCOUNT FORM 
+                                            // ====================================================
                                             elseif($current_page=='account'&&$action=='form'):
                                                 $edit_data=null;$is_edit=false;
                                                 if(isset($_GET['id'])&&isset($_GET['table'])){
-                                                    $id=(int)($_GET['id']??0);
-                                                    $table=$_GET['table']??'';
-                                                    $allowed=['office365_accounts','google_accounts','survey123_accounts','trimble_accounts'];
-                                                    if(in_array($table,$allowed)){
-                                                        $table_escaped=mysqli_real_escape_string($conn,$table);
-                                                        $res=mysqli_query($conn,"SELECT * FROM `$table_escaped` WHERE id=$id");
-                                                        if($res){
-                                                            $edit_data=mysqli_fetch_assoc($res);
-                                                            $is_edit=true;
-                                                        }
-                                                    }
+                                                $id=(int)($_GET['id']??0);
+                                                $table=$_GET['table']??'';
+                                                $allowed=['office365_accounts','google_accounts','survey123_accounts','trimble_accounts'];
+                                                if(in_array($table,$allowed)){
+                                                $table_escaped=mysqli_real_escape_string($conn,$table);
+                                                $res=mysqli_query($conn,"SELECT * FROM `$table_escaped` WHERE id=$id");
+                                                if($res){
+                                                $edit_data=mysqli_fetch_assoc($res);
+                                                $is_edit=true;
+                                                }
+                                                }
                                                 }
                                                 ?>
                                                 <div class="form-wrap">
-                                                <div class="form-header"><div class="form-header-icon"><i class="fas <?=$is_edit?'fa-edit':'fa-user-plus'?>"></i></div><div><h3><?=$is_edit?'Edit Account':'New Account'?></h3><p><?=$is_edit?'Update existing user information':'Register a new system or GIS user account'?></p></div></div>
+                                                <div class="form-header">
+                                                <div class="form-header-icon"><i class="fas <?=$is_edit?'fa-edit':'fa-user-plus'?>"></i></div>
+                                                <div>
+                                                <h3><?=$is_edit?'Edit Account':'New Account'?></h3>
+                                                <p><?=$is_edit?'Update existing user information':'Register a new system or GIS user account'?></p>
+                                                </div>
+                                                </div>
                                                 <div class="form-body">
                                                 <form id="accountForm" action="<?=$is_edit?'update_account.php':'save_account.php'?>" method="POST">
-                                                <?php if($is_edit): ?><input type="hidden" name="update_id" value="<?=$id?>"><input type="hidden" name="update_table" value="<?=$table?>"><?php endif; ?>
+                                                <?php if($is_edit): ?>
+                                                    <input type="hidden" name="update_id" value="<?=$id?>">
+                                                    <input type="hidden" name="update_table" value="<?=$table?>">
+                                                    <?php endif; ?>
+                                                    
+                                                    <!-- ======== SECTION 1 : User Identity & Account Type ======== -->
                                                     <div class="form-section">
-                                                    <div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">1</div><p>User Identity &amp; Account Type</p></div>
+                                                    <div class="form-section-hdr">
+                                                    <div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">1</div>
+                                                    <p>User Identity &amp; Account Type</p>
+                                                    </div>
                                                     <div class="form-grid g3">
-                                                    <div><label class="field-lbl">Username / Full Name <span>*</span></label><div class="field-wrap"><i class="fas fa-user-circle fi"></i><input type="text" name="username" class="field" placeholder="Enter Full Name" value="<?=$edit_data['full_name']??''?>" required></div></div>
-                                                    <div><label class="field-lbl">Account Type</label><div class="field-wrap"><i class="fas fa-at fi"></i><select name="email_type" class="field"><option value="" disabled <?=!$is_edit?'selected':''?>>Please select type</option><?php foreach(["Office 365","Survey 123","Google account","Trimble account"] as $t){$sel=(isset($edit_data['account_type'])&&$edit_data['account_type']==$t)?'selected':'';echo "<option value='$t' $sel>$t</option>";}?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
-                                                    <div><label class="field-lbl">Account Status</label><div class="field-wrap"><i class="fas fa-circle-check fi"></i><select name="status" class="field"><option value="actived" <?=(isset($edit_data['account_status'])&&strtolower($edit_data['account_status'])=='actived')?'selected':''?>>Actived</option><option value="inactived" <?=(isset($edit_data['account_status'])&&strtolower($edit_data['account_status'])=='inactived')?'selected':''?>>Inactived</option><option value="spare" <?=(isset($edit_data['account_status'])&&strtolower($edit_data['account_status'])=='spare')?'selected':''?>>Spare</option></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
+                                                    <div>
+                                                    <label class="field-lbl">Username / Full Name <span>*</span></label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-user-circle fi"></i>
+                                                    <input type="text" name="username" class="field" placeholder="Enter Full Name"
+                                                    value="<?=$edit_data['full_name']??''?>" required>
                                                     </div>
                                                     </div>
+                                                    <div>
+                                                    <label class="field-lbl">Account Type</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-at fi"></i>
+                                                    <select name="email_type" class="field">
+                                                    <option value="" disabled <?=!$is_edit?'selected':''?>>Please select type</option>
+                                                    <?php foreach(["Office 365","Survey 123","Google account","Trimble account"] as $t){
+                                                    $sel=(isset($edit_data['account_type'])&&$edit_data['account_type']==$t)?'selected':'';
+                                                    echo "<option value='$t' $sel>$t</option>";
+                                                    }?>
+                                                    </select>
+                                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                                    </div>
+                                                    </div>
+                                                    <div>
+                                                    <label class="field-lbl">Account Status</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-circle-check fi"></i>
+                                                    <select name="status" class="field">
+                                                    <option value="actived" <?=(isset($edit_data['account_status'])&&strtolower($edit_data['account_status'])=='actived')?'selected':''?>>Actived</option>
+                                                    <option value="inactived" <?=(isset($edit_data['account_status'])&&strtolower($edit_data['account_status'])=='inactived')?'selected':''?>>Inactived</option>
+                                                    <option value="spare" <?=(isset($edit_data['account_status'])&&strtolower($edit_data['account_status'])=='spare')?'selected':''?>>Spare</option>
+                                                    </select>
+                                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                    
+                                                    <!-- ======== SECTION 2 : Credentials & Email Addresses ======== -->
                                                     <div class="form-section">
-                                                    <div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">2</div><p>Credentials &amp; Email Addresses</p></div>
+                                                    <div class="form-section-hdr">
+                                                    <div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">2</div>
+                                                    <p>Credentials &amp; Email Addresses</p>
+                                                    </div>
                                                     <div class="form-grid g2" style="margin-bottom:.875rem;">
-                                                    <div><label class="field-lbl">Office365 / SV123 / Gmail / Trimble</label><div class="field-wrap"><i class="fas fa-envelope fi"></i><input type="text" name="email_1" class="field" placeholder="Enter Email or Username" value="<?=$edit_data['primary_email']??''?>"></div></div>
-                                                    <div><label class="field-lbl">Account Password</label><div class="field-wrap"><i class="fas fa-lock fi"></i><input type="text" name="password" class="field" placeholder="Enter password" value="<?=$edit_data['password']??''?>"></div></div>
+                                                    <div>
+                                                    <label class="field-lbl">Office365 / SV123 / Gmail / Trimble</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-envelope fi"></i>
+                                                    <input type="text" name="email_1" class="field" placeholder="Enter Email or Username"
+                                                    value="<?=$edit_data['primary_email']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    <div>
+                                                    <label class="field-lbl">Account Password</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-lock fi"></i>
+                                                    <input type="text" name="password" class="field" placeholder="Enter password"
+                                                    value="<?=$edit_data['password']??''?>">
+                                                    </div>
+                                                    </div>
                                                     </div>
                                                     <div class="form-grid g2">
-                                                    <div><label class="field-lbl">Second Email</label><div class="field-wrap"><i class="fas fa-envelope-open fi"></i><input type="email" name="email_2" class="field" placeholder="Optional email" value="<?=$edit_data['second_email']??''?>"></div></div>
-                                                    <div><label class="field-lbl">Third Email</label><div class="field-wrap"><i class="fas fa-envelope-open fi"></i><input type="email" name="email_3" class="field" placeholder="Optional email" value="<?=$edit_data['third_email']??''?>"></div></div>
+                                                    <div>
+                                                    <label class="field-lbl">Second Email</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-envelope-open fi"></i>
+                                                    <input type="email" name="email_2" class="field" placeholder="Optional email"
+                                                    value="<?=$edit_data['second_email']??''?>">
                                                     </div>
                                                     </div>
+                                                    <div>
+                                                    <label class="field-lbl">Third Email</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-envelope-open fi"></i>
+                                                    <input type="email" name="email_3" class="field" placeholder="Optional email"
+                                                    value="<?=$edit_data['third_email']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                    
+                                                    <!-- ======== SECTION 3 : Organization & Asset Info ======== -->
                                                     <div class="form-section">
-                                                    <div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">3</div><p>Organization &amp; Asset Info</p></div>
+                                                    <div class="form-section-hdr">
+                                                    <div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">3</div>
+                                                    <p>Organization &amp; Asset Info</p>
+                                                    </div>
                                                     <div class="form-grid g3">
-                                                    <div><label class="field-lbl">Department</label><div class="field-wrap"><i class="fas fa-sitemap fi"></i><select name="department" class="field"><option value="" disabled <?=!$is_edit?'selected':''?>>Select Department</option><?php foreach(["Finance","Operation","Fleet","Logistic","HR","Liaison","GIS","Electrician","ICT","Translator","Eore","Expat"] as $d){$sel=(isset($edit_data['department'])&&$edit_data['department']==$d)?'selected':'';echo "<option value='$d' $sel>$d</option>";}?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
-                                                    <div><label class="field-lbl">Team</label><div class="field-wrap"><i class="fas fa-users fi"></i><input type="text" name="team" class="field" placeholder="Enter team name" value="<?=$edit_data['team']??''?>"></div></div>
-                                                    <div><label class="field-lbl">Phone Number</label><div class="field-wrap"><i class="fas fa-phone-alt fi"></i><input type="text" name="phone" class="field" placeholder="020 XXXXXXXX" value="<?=$edit_data['phone']??''?>"></div></div>
-                                                    <div><label class="field-lbl">INS Number</label><div class="field-wrap"><i class="fas fa-id-card fi"></i><input type="text" name="ins_number" class="field" placeholder="Enter INS number" value="<?=$edit_data['ins_number']??''?>"></div></div>
-                                                    <div class="g-span2"><label class="field-lbl">Halo Device Number</label><div class="field-wrap"><i class="fas fa-laptop-medical fi"></i><input type="text" name="halo_id" class="field" placeholder="Enter device number" value="<?=$edit_data['halo_device_number']??''?>"></div></div>
+                                                    <div>
+                                                    <label class="field-lbl">Department</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-sitemap fi"></i>
+                                                    <select name="department" class="field">
+                                                    <option value="" disabled <?=!$is_edit?'selected':''?>>Select Department</option>
+                                                    <?php foreach(["Finance","Operation","Fleet","Logistic","HR","Liaison","GIS","Electrician","ICT","Translator","Eore","Expat"] as $d){
+                                                    $sel=(isset($edit_data['department'])&&$edit_data['department']==$d)?'selected':'';
+                                                    echo "<option value='$d' $sel>$d</option>";
+                                                    }?>
+                                                    </select>
+                                                    <i class="fas fa-chevron-down select-arrow"></i>
                                                     </div>
                                                     </div>
-                                                    <button type="submit" class="btn-submit"><i class="fas <?=$is_edit?'fa-save':'fa-cloud-upload-alt'?>"></i><?=$is_edit?'Update Account Information':'Save Account Information'?></button>
+                                                    <div>
+                                                    <label class="field-lbl">Team</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-users fi"></i>
+                                                    <input type="text" name="team" class="field" placeholder="Enter team name"
+                                                    value="<?=$edit_data['team']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    <div>
+                                                    <label class="field-lbl">Phone Number</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-phone-alt fi"></i>
+                                                    <input type="text" name="phone" class="field" placeholder="020 XXXXXXXX"
+                                                    value="<?=$edit_data['phone']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    <div>
+                                                    <label class="field-lbl">INS Number</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-id-card fi"></i>
+                                                    <input type="text" name="ins_number" class="field" placeholder="Enter INS number"
+                                                    value="<?=$edit_data['ins_number']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    <div class="g-span2">
+                                                    <label class="field-lbl">Halo Device Number</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-laptop-medical fi"></i>
+                                                    <input type="text" name="halo_id" class="field" placeholder="Enter device number"
+                                                    value="<?=$edit_data['halo_device_number']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    <div class="g-span3">
+                                                    <label class="field-lbl">Remark</label>
+                                                    <div class="field-wrap">
+                                                    <i class="fas fa-comment-dots fi"></i>
+                                                    <input type="text" name="remark" class="field" placeholder="Enter remark (optional)"
+                                                    value="<?=$edit_data['remark']??''?>">
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                    
+                                                    <button type="submit" class="btn-submit">
+                                                    <i class="fas <?=$is_edit?'fa-save':'fa-cloud-upload-alt'?>"></i>
+                                                    <?=$is_edit?'Update Account Information':'Save Account Information'?>
+                                                    </button>
                                                     </form>
                                                     </div>
                                                     </div>
+                                                    
                                                     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                                                     <script>
-                                                    document.getElementById('accountForm').addEventListener('submit',function(e){e.preventDefault();const form=this;const isEdit=form.querySelector('input[name="update_id"]')!==null;const action=isEdit?'update_account.php':'save_account.php';fetch(action,{method:'POST',body:new FormData(form)}).then(r=>r.json()).then(data=>{if(data.status==='saved'){Swal.fire({icon:'success',title:'Saved Successfully!',text:'Account information has been saved.',confirmButtonColor:'#002855',timer:2500,timerProgressBar:true});if(!isEdit)form.reset();}else if(data.status==='updated'){Swal.fire({icon:'success',title:'Updated Successfully!',text:'Account information has been updated.',confirmButtonColor:'#002855',timer:2500,timerProgressBar:true});}else{Swal.fire({icon:'error',title:'Error Occurred!',text:data.msg||'Unable to save data.',confirmButtonColor:'#d33'});}}).catch(()=>{Swal.fire({icon:'error',title:'Connection Failed!',text:'Please try again.',confirmButtonColor:'#d33'});});});
+                                                    document.getElementById('accountForm').addEventListener('submit',function(e){
+                                                    e.preventDefault();
+                                                    const form=this;
+                                                    const isEdit=form.querySelector('input[name="update_id"]')!==null;
+                                                    const action=isEdit?'update_account.php':'save_account.php';
+                                                    fetch(action,{method:'POST',body:new FormData(form)})
+                                                    .then(r=>r.json())
+                                                    .then(data=>{
+                                                    if(data.status==='saved'){
+                                                    Swal.fire({icon:'success',title:'Saved Successfully!',text:'Account information has been saved.',confirmButtonColor:'#002855',timer:2500,timerProgressBar:true});
+                                                    if(!isEdit)form.reset();
+                                                    }else if(data.status==='updated'){
+                                                    Swal.fire({icon:'success',title:'Updated Successfully!',text:'Account information has been updated.',confirmButtonColor:'#002855',timer:2500,timerProgressBar:true});
+                                                    }else{
+                                                    Swal.fire({icon:'error',title:'Error Occurred!',text:data.msg||'Unable to save data.',confirmButtonColor:'#d33'});
+                                                    }
+                                                    })
+                                                    .catch(()=>{
+                                                    Swal.fire({icon:'error',title:'Connection Failed!',text:'Please try again.',confirmButtonColor:'#d33'});
+                                                    });
+                                                    });
                                                     </script>
                                                     
                                                     <?php
+                                                    // ====================================================
                                                     //  ACCOUNT LIST
+                                                    // ====================================================
                                                     elseif($current_page=='account'&&$action=='list'):
                                                         $filter_type=isset($_GET['filter_type'])?mysqli_real_escape_string($conn,$_GET['filter_type']):'';
                                                         $filter_dept=isset($_GET['filter_dept'])?mysqli_real_escape_string($conn,$_GET['filter_dept']):'';
                                                         $sub_where="";
                                                         if($filter_type!='') $sub_where.=" AND account_type='$filter_type'";
                                                         if($filter_dept!='') $sub_where.=" AND department='$filter_dept'";
-                                                        $sql="SELECT id,full_name,account_type,account_status,primary_email AS `Office365-SV123-Gmail-Trimble`,password,second_email,third_email,department,team,ins_number,halo_device_number,phone,'office365_accounts' as source_table FROM office365_accounts WHERE (full_name IS NOT NULL AND full_name!='') $sub_where
-                                                        UNION ALL SELECT id,full_name,account_type,account_status,primary_email AS `Office365-SV123-Gmail-Trimble`,password,second_email,third_email,department,team,ins_number,halo_device_number,phone,'google_accounts' as source_table FROM google_accounts WHERE (full_name IS NOT NULL AND full_name!='') $sub_where
-                                                        UNION ALL SELECT id,full_name,account_type,account_status,primary_email AS `Office365-SV123-Gmail-Trimble`,password,second_email,third_email,department,team,ins_number,halo_device_number,phone,'survey123_accounts' as source_table FROM survey123_accounts WHERE (full_name IS NOT NULL AND full_name!='') $sub_where
-                                                        UNION ALL SELECT id,full_name,account_type,account_status,primary_email AS `Office365-SV123-Gmail-Trimble`,password,second_email,third_email,department,team,ins_number,halo_device_number,phone,'trimble_accounts' as source_table FROM trimble_accounts WHERE (full_name IS NOT NULL AND full_name!='') $sub_where";
+                                                        
+                                                        // ✅ ເພີ່ມ remark ໃນທຸກ UNION
+                                                        $sql="SELECT id,full_name,account_type,account_status,
+                 primary_email AS `Office365-SV123-Gmail-Trimble`,
+                 password,second_email,third_email,
+                 department,team,ins_number,halo_device_number,
+                 remark,phone,
+                 'office365_accounts' as source_table
+          FROM office365_accounts
+          WHERE (full_name IS NOT NULL AND full_name!='') $sub_where
+
+          UNION ALL
+
+          SELECT id,full_name,account_type,account_status,
+                 primary_email AS `Office365-SV123-Gmail-Trimble`,
+                 password,second_email,third_email,
+                 department,team,ins_number,halo_device_number,
+                 remark,phone,
+                 'google_accounts' as source_table
+          FROM google_accounts
+          WHERE (full_name IS NOT NULL AND full_name!='') $sub_where
+
+          UNION ALL
+
+          SELECT id,full_name,account_type,account_status,
+                 primary_email AS `Office365-SV123-Gmail-Trimble`,
+                 password,second_email,third_email,
+                 department,team,ins_number,halo_device_number,
+                 remark,phone,
+                 'survey123_accounts' as source_table
+          FROM survey123_accounts
+          WHERE (full_name IS NOT NULL AND full_name!='') $sub_where
+
+          UNION ALL
+
+          SELECT id,full_name,account_type,account_status,
+                 primary_email AS `Office365-SV123-Gmail-Trimble`,
+                 password,second_email,third_email,
+                 department,team,ins_number,halo_device_number,
+                 remark,phone,
+                 'trimble_accounts' as source_table
+          FROM trimble_accounts
+          WHERE (full_name IS NOT NULL AND full_name!='') $sub_where";
+                                                        
                                                         $result=mysqli_query($conn,$sql);
                                                         ?>
-                                                        <div class="page-hdr"><div><h2>All System Accounts</h2><p>List of all user accounts in the system</p></div><a href="?page=account&action=form" class="btn-primary"><i class="fas fa-plus-circle"></i> New Account</a></div>
+                                                        
+                                                        <div class="page-hdr">
+                                                        <div><h2>All System Accounts</h2><p>List of all user accounts in the system</p></div>
+                                                        <a href="?page=account&action=form" class="btn-primary"><i class="fas fa-plus-circle"></i> New Account</a>
+                                                        </div>
+                                                        
                                                         <div class="tbl-wrap">
-                                                        <form method="GET" class="filter-bar"><input type="hidden" name="page" value="account"><input type="hidden" name="action" value="list">
+                                                        <form method="GET" class="filter-bar">
+                                                        <input type="hidden" name="page" value="account">
+                                                        <input type="hidden" name="action" value="list">
                                                         <span class="filter-lbl">Filter:</span>
-                                                        <select name="filter_type" class="filter-select"><option value="">All Account Types</option><option value="Office 365" <?=$filter_type=='Office 365'?'selected':''?>>Office 365</option><option value="Google account" <?=$filter_type=='Google account'?'selected':''?>>Google account</option><option value="Survey 123" <?=$filter_type=='Survey 123'?'selected':''?>>Survey 123</option><option value="Trimble account" <?=$filter_type=='Trimble account'?'selected':''?>>Trimble account</option></select>
-                                                        <select name="filter_dept" class="filter-select"><option value="">All Departments</option><?php foreach(["GIS","ICT","HR","Finance","Liaison","Facility","OPS","Fleet","Electical","Medical","Logistic","Expat"] as $d) echo "<option value='$d' ".($filter_dept==$d?'selected':'').">$d</option>"; ?></select>
-                                                        <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="tableSearch" class="filter-input" placeholder="Search name, email, type..."></div>
+                                                        <select name="filter_type" class="filter-select">
+                                                        <option value="">All Account Types</option>
+                                                        <option value="Office 365"      <?=$filter_type=='Office 365'?'selected':''?>>Office 365</option>
+                                                        <option value="Google account"  <?=$filter_type=='Google account'?'selected':''?>>Google account</option>
+                                                        <option value="Survey 123"      <?=$filter_type=='Survey 123'?'selected':''?>>Survey 123</option>
+                                                        <option value="Trimble account" <?=$filter_type=='Trimble account'?'selected':''?>>Trimble account</option>
+                                                        </select>
+                                                        <select name="filter_dept" class="filter-select">
+                                                        <option value="">All Departments</option>
+                                                        <?php foreach(["GIS","ICT","HR","Finance","Liaison","Facility","OPS","Fleet","Electical","Medical","Logistic","Expat"] as $d)
+                                                        echo "<option value='$d' ".($filter_dept==$d?'selected':'').">$d</option>"; ?>
+                                                        </select>
+                                                        <div class="search-wrap">
+                                                        <i class="fas fa-search"></i>
+                                                        <input type="text" id="tableSearch" class="filter-input" placeholder="Search name, email, type...">
+                                                        </div>
                                                         <button type="submit" class="btn-filter">Apply</button>
-                                                        <?php if($filter_type||$filter_dept): ?><a href="?page=account&action=list" class="btn-clear">Clear All</a><?php endif; ?>
+                                                        <?php if($filter_type||$filter_dept): ?>
+                                                            <a href="?page=account&action=list" class="btn-clear">Clear All</a>
+                                                            <?php endif; ?>
                                                             </form>
-                                                            <div class="tbl-scroll"><table id="accountTable" style="min-width:1900px;">
-                                                            <thead><tr>
+                                                            
+                                                            <div class="tbl-scroll">
+                                                            <table id="accountTable" style="min-width:2100px;">
+                                                            <thead>
+                                                            <tr>
                                                             <th class="sticky-l200" style="width:200px;background:#f4f7fd;">Full Name</th>
-                                                            <th style="width:120px;">Type</th><th style="width:110px;" class="th-center">Status</th>
-                                                            <th style="width:220px;">Office365/SV123/Gmail/Trimble</th><th style="width:160px;">Password</th>
-                                                            <th style="width:200px;">Second Email</th><th style="width:200px;">Third Email</th>
-                                                            <th style="width:130px;">Department</th><th style="width:110px;">Team</th>
-                                                            <th style="width:110px;" class="th-center">INS Number</th><th style="width:160px;">Halo Device</th>
-                                                            <th style="width:130px;">Phone</th><th class="sticky-r" style="width:90px;text-align:center;">Action</th>
-                                                            </tr></thead><tbody>
+                                                            <th style="width:120px;">Type</th>
+                                                            <th style="width:110px;" class="th-center">Status</th>
+                                                            <th style="width:220px;">Office365/SV123/Gmail/Trimble</th>
+                                                            <th style="width:160px;">Password</th>
+                                                            <th style="width:200px;">Second Email</th>
+                                                            <th style="width:200px;">Third Email</th>
+                                                            <th style="width:130px;">Department</th>
+                                                            <th style="width:110px;">Team</th>
+                                                            <th style="width:110px;" class="th-center">INS Number</th>
+                                                            <th style="width:160px;">Halo Device</th>
+                                                            <th style="width:180px;">Remark</th>
+                                                            <th style="width:130px;">Phone</th>
+                                                            <th class="sticky-r" style="width:90px;text-align:center;">Action</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
                                                             <?php if($result&&mysqli_num_rows($result)>0):while($row=mysqli_fetch_assoc($result)): ?>
                                                                 <tr>
                                                                 <td class="td-bold sticky-l200" style="background:var(--surface);"><?=htmlspecialchars($row['full_name'])?></td>
                                                                 <td><?=htmlspecialchars($row['account_type'])?></td>
-                                                                <td><?php $st=strtolower($row['account_status']??''); $spill=$st=='actived'?'pill-green':($st=='spare'?'pill-blue':'pill-red'); ?><span class="status-pill <?=$spill?>"><?=strtoupper($row['account_status']??'-')?></span></td>
-                                                                <td><?=htmlspecialchars($row['Office365-SV123-Gmail-Trimble'])?></td><td class="td-mono"><?=htmlspecialchars($row['password'])?></td>
-                                                                <td><?=htmlspecialchars($row['second_email'])?></td><td><?=htmlspecialchars($row['third_email'])?></td>
-                                                                <td><?=htmlspecialchars($row['department'])?></td><td><?=htmlspecialchars($row['team'])?></td>
-                                                                <td><?=htmlspecialchars($row['ins_number'])?></td><td><?=htmlspecialchars($row['halo_device_number'])?></td>
+                                                                <td>
+                                                                <?php
+                                                                $st=strtolower($row['account_status']??'');
+                                                                $spill=$st=='actived'?'pill-green':($st=='spare'?'pill-blue':'pill-red');
+                                                                ?>
+                                                                <span class="status-pill <?=$spill?>"><?=strtoupper($row['account_status']??'-')?></span>
+                                                                </td>
+                                                                <td><?=htmlspecialchars($row['Office365-SV123-Gmail-Trimble'])?></td>
+                                                                <td class="td-mono"><?=htmlspecialchars($row['password'])?></td>
+                                                                <td><?=htmlspecialchars($row['second_email'])?></td>
+                                                                <td><?=htmlspecialchars($row['third_email'])?></td>
+                                                                <td><?=htmlspecialchars($row['department'])?></td>
+                                                                <td><?=htmlspecialchars($row['team'])?></td>
+                                                                <td><?=htmlspecialchars($row['ins_number'])?></td>
+                                                                <td><?=htmlspecialchars($row['halo_device_number'])?></td>
+                                                                <!-- ✅ Cell Remark ໃໝ່ -->
+                                                                <td><?=htmlspecialchars($row['remark']??'')?></td>
                                                                 <td class="td-bold"><?=htmlspecialchars($row['phone'])?></td>
-                                                                <td class="sticky-r" style="text-align:center;background:var(--surface);"><div class="action-btns"><a href="?page=account&action=form&id=<?=$row['id']?>&table=<?=$row['source_table']?>" class="action-btn edit"><i class="fas fa-edit"></i></a><button class="action-btn del" onclick="deleteAccount(<?=$row['id']?>,'<?=$row['source_table']?>')"><i class="fas fa-trash"></i></button></div></td>
+                                                                <td class="sticky-r" style="text-align:center;background:var(--surface);">
+                                                                <div class="action-btns">
+                                                                <a href="?page=account&action=form&id=<?=$row['id']?>&table=<?=$row['source_table']?>" class="action-btn edit">
+                                                                <i class="fas fa-edit"></i>
+                                                                </a>
+                                                                <button class="action-btn del" onclick="deleteAccount(<?=$row['id']?>,'<?=$row['source_table']?>')">
+                                                                <i class="fas fa-trash"></i>
+                                                                </button>
+                                                                </div>
+                                                                </td>
                                                                 </tr>
-                                                                <?php endwhile;else: ?><tr class="empty-row"><td colspan="13"><i class="fas fa-folder-open"></i>No data found</td></tr><?php endif; ?>
-                                                                    </tbody></table></div></div>
+                                                                <?php endwhile;else: ?>
+                                                                    <!-- ✅ colspan=14 (ເພີ່ມຈາກ 13 ເປັນ 14) -->
+                                                                    <tr class="empty-row"><td colspan="14"><i class="fas fa-folder-open"></i>No data found</td></tr>
+                                                                    <?php endif; ?>
+                                                                    </tbody>
+                                                                    </table>
+                                                                    </div>
+                                                                    </div>
+                                                                    
                                                                     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                                                                     <script>
-                                                                    function deleteAccount(id,tableName){Swal.fire({title:'Are you sure?',text:'This action cannot be undone!',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33',cancelButtonColor:'#64748b',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='?page=account&action=delete&id='+id+'&table='+tableName;});}
-                                                                    const _p=new URLSearchParams(window.location.search);
-                                                                    if(_p.get('status')==='deleted'){Swal.fire({title:'Deleted!',text:'Data has been deleted successfully.',icon:'success',timer:2000,showConfirmButton:false});window.history.replaceState({},document.title,window.location.pathname+window.location.search.split('&status=')[0]);}
-                                                                    document.getElementById('tableSearch').addEventListener('keyup',function(){const v=this.value.toLowerCase();document.querySelectorAll('#accountTable tbody tr:not(.empty-row)').forEach(r=>{r.style.display=r.innerText.toLowerCase().includes(v)?'':'none';});});
-                                                                    </script>
+                                                                    function deleteAccount(id,tableName){
+                                                                    Swal.fire({
+                                                                    title:'Are you sure?',
+                                                                    text:'This action cannot be undone!',
+                                                                    icon:'warning',
+                                                                    showCancelButton:true,
+                                                                    confirmButtonColor:'#d33',
+                                                                    cancelButtonColor:'#64748b',
+                                                                    confirmButtonText:'Yes, Delete',
+                                                                    cancelButtonText:'Cancel',
+                                                                    reverseButtons:true
+                                                                    }).then(r=>{
+                                                                    if(r.isConfirmed) window.location.href='?page=account&action=delete&id='+id+'&table='+tableName;
+                                                                    });
+                                                                    }
                                                                     
+                                                                    const _p=new URLSearchParams(window.location.search);
+                                                                    if(_p.get('status')==='deleted'){
+                                                                    Swal.fire({title:'Deleted!',text:'Data has been deleted successfully.',icon:'success',timer:2000,showConfirmButton:false});
+                                                                    window.history.replaceState({},document.title,window.location.pathname+window.location.search.split('&status=')[0]);
+                                                                    }
+                                                                    
+                                                                    document.getElementById('tableSearch').addEventListener('keyup',function(){
+                                                                    const v=this.value.toLowerCase();
+                                                                    document.querySelectorAll('#accountTable tbody tr:not(.empty-row)').forEach(r=>{
+                                                                    r.style.display=r.innerText.toLowerCase().includes(v)?'':'none';
+                                                                    });
+                                                                    });
+                                                                    </script>
                                                                     <?php
                                                                     //  DEVICE TRANSFER
                                                                     elseif($current_page=='device'&&$action=='transfer'): ?>
@@ -1108,7 +1394,7 @@ td.td-teal{color:#0f766e;font-weight:500;}
                                                                                                     <div class="form-section">
                                                                                                     <div class="form-section-hdr"><div class="step-badge" style="background:#fee2e2;color:#b91c1c;">2</div><p>Problem Description</p></div>
                                                                                                     <div class="form-grid" style="gap:.875rem;">
-                                                                                                    <div><label class="field-lbl">Problem Case <span>*</span></label><div class="field-wrap"><i class="fas fa-tools fi"></i><select name="problem_case" class="field" required><option value="" disabled <?=!$m_is_edit?'selected':''?>>Please choose a problem case</option><?php foreach(["Used as hotspot","Watching YouTube","Watching movies","Cracked casing","Cracked screen","Minor crack","Battery drains fast","Slow performance","Very slow","Cannot use","Charging port issue","Login form issue","Screen malfunction"] as $pc){$sel=(isset($m_edit['problem_case'])&&$m_edit['problem_case']==$pc)?'selected':'';echo "<option value='$pc' $sel>$pc</option>";}?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
+                                                                                                    <div><label class="field-lbl">Problem Case <span>*</span></label><div class="field-wrap"><i class="fas fa-tools fi"></i><select name="problem_case" class="field" required><option value="" disabled <?=!$m_is_edit?'selected':''?>>Please choose a problem case</option><?php foreach(["ໃຊ້ເປັນບ່ອນແຊຣ໌ອິນເຕີເນັດ (ຮັອດສະປອດ)","ເບິ່ງຢູທູບ","ເບິ່ງໜັງ","ເຂັດ(ຝາຫຼັງ)ແຕກ","ໜ້າຈໍແຕກ","ມີຮອຍແຕກເລັກນ້ອຍ","ແບັດເຕີຣີໝົດໄວ","ເຄື່ອງຊ້າ","ເຄື່ອງຊ້າແຮງ","ບໍ່ສາມາດໃຊ້ງານໄດ້","ບັນຫາຮູສາກ","ບັນຫາຟອມເຂົ້າສູ່ລະບົບ","ໜ້າຈໍເຮັດວຽກຜິດປົກກະຕິ (ໜ້າຈໍເພ)"] as $pc){$sel=(isset($m_edit['problem_case'])&&$m_edit['problem_case']==$pc)?'selected':'';echo "<option value='$pc' $sel>$pc</option>";}?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
                                                                                                     <div><label class="field-lbl">Remark</label><div class="field-wrap ta-icon"><i class="fas fa-comment-dots fi"></i><textarea name="remark" class="field" rows="3" placeholder="Additional notes" style="padding-top:.7rem;resize:vertical;"><?=htmlspecialchars($m_edit['remark']??'')?></textarea></div></div>
                                                                                                     </div></div>
                                                                                                     <button type="submit" class="btn-submit"><i class="fas fa-save"></i><?=$m_is_edit?'Update Mistake Record':'Save Mistake Record'?></button>
@@ -1681,307 +1967,308 @@ td.td-teal{color:#0f766e;font-weight:500;}
                                                                                                                                                                                                                                 });
                                                                                                                                                                                                                                 </script>
                                                                                                                                                                                                                                 
-
-<?php
-//  EQUIPMENT STOCK: NEW EQUIPMENT FORM
-elseif($current_page=='equipment_stock' && $action=='form'):
-$eq_edit=null; $eq_is_edit=false;
-if(isset($_GET['eq_id'])&&!empty($_GET['eq_id'])){
-$eq_eid=(int)($_GET[array_key_exists("eq_id",$_GET)?"eq_id":"id"]??0);
-$tc=@mysqli_query($conn,"SHOW TABLES LIKE 'equipment_stock'");
-if($tc&&mysqli_num_rows($tc)>0){$er=@mysqli_query($conn,"SELECT * FROM equipment_stock WHERE id='$eq_eid'");if($er&&($ed=mysqli_fetch_assoc($er))){$eq_edit=$ed;$eq_is_edit=true;}}
-}
-?>
-<div class="form-wrap">
-<div class="form-header"><div class="form-header-icon"><i class="fas fa-boxes-stacked"></i></div><div><h3><?=$eq_is_edit?'Edit Equipment':'New Equipment'?></h3><p>Record ICT equipment stock information</p></div></div>
-<div class="form-body">
-<form id="equipForm" method="POST">
-<?php if($eq_is_edit): ?><input type="hidden" name="eq_id" value="<?=$eq_edit['id']?>"><?php endif; ?>
-<div class="form-section">
-<div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">1</div><p>Equipment Information</p></div>
-<div class="form-grid g3">
-<div><label class="field-lbl">E ID <span>*</span></label><div class="field-wrap"><i class="fas fa-barcode fi"></i><input type="text" name="e_id" id="eq_e_id" class="field" placeholder="Equipment ID" value="<?=htmlspecialchars($eq_edit['e_id']??'')?>" required></div></div>
-<div><label class="field-lbl">Eng Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="eng_name" class="field" placeholder="English name" value="<?=htmlspecialchars($eq_edit['eng_name']??'')?>"></div></div>
-<div><label class="field-lbl">Lao Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="lao_name" class="field" placeholder="Lao name" value="<?=htmlspecialchars($eq_edit['lao_name']??'')?>"></div></div>
-</div>
-</div>
-<div class="form-section">
-<div class="form-section-hdr"><div class="step-badge" style="background:#dcfce7;color:#15803d;">2</div><p>Stock Quantities &amp; Details</p></div>
-<div class="form-grid g4">
-<div><label class="field-lbl">E New (Qty In)</label><div class="field-wrap"><i class="fas fa-plus-circle fi"></i><input type="number" name="e_new" id="eq_e_new" class="field" placeholder="0" value="<?=htmlspecialchars($eq_edit['e_new']??'0')?>" min="0" oninput="calcAllStock()"></div></div>
-<div><label class="field-lbl">All Stock</label><div class="field-wrap"><i class="fas fa-layer-group fi"></i><input type="number" name="all_stock" id="eq_all_stock" class="field" placeholder="0" value="<?=htmlspecialchars($eq_edit['all_stock']??'0')?>" readonly style="background:#f0f4fb;"></div></div>
-<div><label class="field-lbl">Type</label><div class="field-wrap"><i class="fas fa-laptop fi"></i><select name="type" class="field"><?php foreach(["unit","line","en","set","Piece","Other"] as $t){$sel=(isset($eq_edit['type'])&&$eq_edit['type']==$t)?'selected':'';echo "<option value='$t' $sel>$t</option>";}?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
-<div><label class="field-lbl">Date In</label><div class="field-wrap"><i class="fas fa-calendar-plus fi"></i><input type="date" name="date_in" class="field" value="<?=htmlspecialchars($eq_edit['date_in']??'')?>"></div></div>
-</div>
-</div>
-<button type="submit" class="btn-submit"><i class="fas fa-save"></i><?=$eq_is_edit?'Update Equipment':'Save Equipment'?></button>
-</form>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-var _isEdit = <?=$eq_is_edit?'true':'false'?>;
-var _origENew = <?=(int)($eq_edit['e_new']??0)?>;
-var _origAllStock = <?=(int)($eq_edit['all_stock']??0)?>;
-function calcAllStock(){
-var eNew=parseInt(document.getElementById('eq_e_new').value)||0;
-var newAll;
-if(_isEdit){
-// preserve stock already issued: all_stock = old_all + (new_e_new - old_e_new)
-newAll=Math.max(0,_origAllStock+(eNew-_origENew));
-}else{
-newAll=Math.max(0,eNew);
-}
-document.getElementById('eq_all_stock').value=newAll;
-}
-calcAllStock();
-document.getElementById('equipForm').addEventListener('submit',function(e){
-e.preventDefault();
-var form=this;
-fetch('save_equipment.php',{method:'POST',body:new FormData(form)})
-.then(r=>r.json())
-.then(data=>{
-if(data.status==='saved'){Swal.fire({icon:'success',title:'Saved!',text:'Equipment has been saved.',confirmButtonColor:'#01244d',timer:2500,timerProgressBar:true});form.reset();document.getElementById('eq_all_stock').value=0;}
-else if(data.status==='updated'){Swal.fire({icon:'success',title:'Updated!',text:'Equipment has been updated.',confirmButtonColor:'#01244d',timer:2500,timerProgressBar:true});}
-else{Swal.fire({icon:'error',title:'Error!',text:data.msg||'Unable to save.',confirmButtonColor:'#dc2626'});}
-}).catch(err=>Swal.fire({icon:'error',title:'Connection Error!',text:'Please try again.',confirmButtonColor:'#dc2626'}));
-});
-</script>
-
-<?php
-//  EQUIPMENT STOCK: ALL EQUIPMENT TABLE
-elseif($current_page=='equipment_stock' && $action=='list'):
-$eq_tbl=@mysqli_query($conn,"SHOW TABLES LIKE 'equipment_stock'");
-$eq_result=null;
-if($eq_tbl&&mysqli_num_rows($eq_tbl)>0){$eq_result=mysqli_query($conn,"SELECT * FROM equipment_stock ORDER BY id DESC");}
-?>
-<div class="page-hdr"><div><h2>All Equipment Stock</h2><p>All ICT equipment stock records</p></div><a href="?page=equipment_stock&action=form" class="btn-primary"><i class="fas fa-plus-circle"></i> New Equipment</a></div>
-<div class="tbl-wrap">
-<div class="filter-bar">
-<div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="equipSearch" class="filter-input" placeholder="Search E ID, name..."></div>
-<select id="typeFilter" class="filter-select"><option value="">All Types</option><?php foreach(["Computer","Monitor","Printer","Scanner","Projector","UPS","Switch","Router","Cable","Other"] as $t) echo "<option value='$t'>$t</option>"; ?></select>
-</div>
-<div class="tbl-scroll"><table id="equipTable" style="min-width:1100px;">
-<thead><tr>
-<th style="width:50px;">#</th>
-<th>E ID</th><th>Eng Name</th><th>Lao Name</th>
-<th style="text-align:center;">E OldStock</th><th style="text-align:center;">All Stock</th>
-<th>Type</th><th style="text-align:center;">Date In</th><th style="text-align:center;">Created At</th><th style="text-align:center;">Action</th>
-</tr></thead><tbody>
-<?php if($eq_result&&mysqli_num_rows($eq_result)>0):$no=1;while($row=mysqli_fetch_assoc($eq_result)): ?>
-<tr>
-<td style="color:var(--muted);font-weight:700;"><?=$no++?></td>
-<td class="td-blue td-bold"><?=htmlspecialchars($row['e_id']??'')?></td>
-<td class="td-bold"><?=htmlspecialchars($row['eng_name']??'')?></td>
-<td><?=htmlspecialchars($row['lao_name']??'')?></td>
-<td style="text-align:center;"><?=htmlspecialchars($row['e_new']??0)?></td>
-<td style="text-align:center;font-weight:700;color:var(--navy);"><?=htmlspecialchars($row['all_stock']??0)?></td>
-<td><span class="status-pill pill-blue"><?=htmlspecialchars($row['type']??'')?></span></td>
-<td style="text-align:center;font-size:.75rem;"><?=htmlspecialchars($row['date_in']??'')?></td>
-<td style="text-align:center;font-size:.75rem;"><?=htmlspecialchars($row['created_at']??'')?></td>
-<td style="text-align:center;"><div class="action-btns"><a href="?page=equipment_stock&action=form&eq_id=<?=$row['id']?>" class="action-btn edit"><i class="fas fa-edit"></i></a><button class="action-btn del" onclick="deleteEquipment(<?=$row['id']?>)"><i class="fas fa-trash"></i></button></div></td>
-</tr>
-<?php endwhile;else: ?><tr class="empty-row"><td colspan="10"><i class="fas fa-boxes-stacked"></i>No equipment records found</td></tr><?php endif; ?>
-</tbody></table></div></div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-function deleteEquipment(id){Swal.fire({title:'Delete this equipment?',text:'This action cannot be undone!',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc2626',cancelButtonColor:'#64748b',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='?page=equipment_stock&action=delete&id='+id;});}
-const _peq=new URLSearchParams(window.location.search);
-if(_peq.get('status')==='deleted'){Swal.fire({title:'Deleted!',text:'Equipment deleted successfully.',icon:'success',timer:2000,showConfirmButton:false});window.history.replaceState({},'',location.pathname+location.search.replace(/&status=[^&]*/,''));}
-document.getElementById('equipSearch').addEventListener('keyup',function(){
-var v=this.value.toLowerCase();
-var tf=document.getElementById('typeFilter').value;
-document.querySelectorAll('#equipTable tbody tr:not(.empty-row)').forEach(function(r){
-var cells=r.querySelectorAll('td');
-var eid=(cells[1]?cells[1].textContent:'').toLowerCase();
-var eng=(cells[2]?cells[2].textContent:'').toLowerCase();
-var lao=(cells[3]?cells[3].textContent:'').toLowerCase();
-var type=(cells[6]?cells[6].textContent:'').trim();
-var matchSearch=!v||(eid.includes(v)||eng.includes(v)||lao.includes(v));
-var matchType=!tf||type.includes(tf);
-r.style.display=(matchSearch&&matchType)?'':'none';
-});
-});
-document.getElementById('typeFilter').addEventListener('change',function(){
-var tf=this.value;
-var v=document.getElementById('equipSearch').value.toLowerCase();
-document.querySelectorAll('#equipTable tbody tr:not(.empty-row)').forEach(function(r){
-var cells=r.querySelectorAll('td');
-var eid=(cells[1]?cells[1].textContent:'').toLowerCase();
-var eng=(cells[2]?cells[2].textContent:'').toLowerCase();
-var lao=(cells[3]?cells[3].textContent:'').toLowerCase();
-var type=(cells[6]?cells[6].textContent:'').trim();
-var matchSearch=!v||(eid.includes(v)||eng.includes(v)||lao.includes(v));
-var matchType=!tf||type.includes(tf);
-r.style.display=(matchSearch&&matchType)?'':'none';
-});
-});
-</script>
-
-<?php
-//  EQUIPMENT STOCK: ISSUE EQUIPMENT FORM
-elseif($current_page=='equipment_stock' && $action=='issue_form'):
-?>
-<div id="eid-banner" style="display:none;margin-bottom:1rem;padding:.75rem 1.125rem;border-radius:10px;font-size:.8rem;font-weight:600;background:#ffedd5;color:#c2410c;border:1px solid #fed7aa;"></div>
-<div class="form-wrap">
-<div class="form-header"><div class="form-header-icon"><i class="fas fa-share-square"></i></div><div><h3>Issue Equipment</h3><p>Record equipment issued to a staff member</p></div></div>
-<div class="form-body">
-<form id="issueForm" method="POST">
-<div class="form-section">
-<div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">1</div><p>Staff Information &nbsp;<span style="font-size:.62rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(Scan/Enter INS to auto-fill)</span></p></div>
-<div class="form-grid g4">
-<div><label class="field-lbl">User Name</label><div class="field-wrap"><i class="fas fa-user fi"></i><input type="text" name="username" id="issue_username" class="field" placeholder="Auto-filled"></div></div>
-<div><label class="field-lbl">INS Number <span>*</span></label><div class="field-wrap" style="display:flex;gap:.4rem;align-items:center;"><i class="fas fa-id-card fi"></i><input type="text" id="issue_ins_input" name="ins_number" class="field" placeholder="Scan or type INS" style="flex:1;" required><button type="button" id="issue_ins_btn" style="padding:.65rem .75rem;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.72rem;cursor:pointer;flex-shrink:0;"><i class="fas fa-search"></i></button></div></div>
-<div><label class="field-lbl">Department</label><div class="field-wrap"><i class="fas fa-sitemap fi"></i><select name="department" id="issue_department" class="field"><option value="" disabled selected>Select Department</option><?php foreach(["Finance","Operation","Fleet","Logistic","HR","Liaison","GIS","Electrician","ICT","Translator","Eore","Expat"] as $d) echo "<option value='$d'>$d</option>"; ?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
-<div><label class="field-lbl">Team</label><div class="field-wrap"><i class="fas fa-users fi"></i><input type="text" name="team" id="issue_team" class="field" placeholder="Auto-filled"></div></div>
-</div>
-</div>
-<div class="form-section">
-<div class="form-section-hdr"><div class="step-badge" style="background:#dcfce7;color:#15803d;">2</div><p>Equipment Information &nbsp;<span style="font-size:.62rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(Enter Equip ID to auto-fill)</span></p></div>
-<div class="form-grid g4">
-<div><label class="field-lbl">Equip ID <span>*</span></label><div class="field-wrap" style="display:flex;gap:.4rem;align-items:center;"><i class="fas fa-barcode fi"></i><input type="text" id="issue_eid_input" name="e_id" class="field" placeholder="Equipment ID" style="flex:1;" required><button type="button" id="issue_eid_btn" style="padding:.65rem .75rem;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.72rem;cursor:pointer;flex-shrink:0;"><i class="fas fa-search"></i></button></div></div>
-<div><label class="field-lbl">Eng Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="eng_name" id="issue_eng_name" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
-<div><label class="field-lbl">Lao Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="lao_name" id="issue_lao_name" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
-<div><label class="field-lbl">In Stock (All)</label><div class="field-wrap"><i class="fas fa-layer-group fi"></i><input type="number" name="in_stock" id="issue_in_stock" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
-<div><label class="field-lbl">E OldStock</label><div class="field-wrap"><i class="fas fa-box fi"></i><input type="number" name="e_old_stock" id="issue_e_old_stock" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
-<div><label class="field-lbl">Type</label><div class="field-wrap"><i class="fas fa-laptop fi"></i><input type="text" name="type" id="issue_type" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
-<div><label class="field-lbl">Quantity Issue <span>*</span></label><div class="field-wrap"><i class="fas fa-hashtag fi"></i><input type="number" name="quantity" id="issue_quantity" class="field" placeholder="Qty to issue" min="1" required></div></div>
-<div><label class="field-lbl">Date Out</label><div class="field-wrap"><i class="fas fa-calendar-minus fi"></i><input type="date" name="date_out" class="field" value="<?=date('Y-m-d')?>"></div></div>
-</div>
-</div>
-<button type="submit" class="btn-submit"><i class="fas fa-share-square"></i> Issue Equipment</button>
-</form>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-function setIssueField(id,val){var el=document.getElementById(id);if(el)el.value=val||'';}
-function lockEqFields(lock){
-['issue_eng_name','issue_lao_name','issue_in_stock','issue_e_old_stock','issue_type'].forEach(function(id){
-var el=document.getElementById(id);if(!el)return;
-el.readOnly=lock;el.style.background=lock?'#f0f4fb':'#fff';
-});
-}
-function lookupINS(){
-var ins=document.getElementById('issue_ins_input').value.trim();
-if(!ins)return;
-fetch('index.php?lookup_ins=1&ins_number='+encodeURIComponent(ins))
-.then(r=>r.json()).then(data=>{
-if(data.status==='found'){
-var d=data.data;
-setIssueField('issue_username',d.username||d.full_name||'');
-setIssueField('issue_team',d.team||'');
-var dept=document.getElementById('issue_department');
-if(dept&&d.department){for(var i=0;i<dept.options.length;i++){if(dept.options[i].value===d.department){dept.selectedIndex=i;break;}}}
-}
-}).catch(()=>{});
-}
-function lookupEID(){
-var eid=document.getElementById('issue_eid_input').value.trim();
-if(!eid)return;
-var banner=document.getElementById('eid-banner');
-fetch('index.php?lookup_eid=1&e_id='+encodeURIComponent(eid))
-.then(r=>r.json()).then(data=>{
-if(data.status==='found'){
-var d=data.data;
-setIssueField('issue_eng_name',d.eng_name);
-setIssueField('issue_lao_name',d.lao_name);
-setIssueField('issue_in_stock',d.all_stock);
-setIssueField('issue_e_old_stock',d.e_new);
-setIssueField('issue_type',d.type);
-lockEqFields(true);
-banner.style.display='none';
-}else{
-banner.style.display='block';
-banner.innerHTML='<i class="fas fa-exclamation-triangle"></i> Equipment not found â€” fill manually';
-lockEqFields(false);
-}
-}).catch(()=>{});
-}
-document.getElementById('issue_ins_input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();lookupINS();}});
-document.getElementById('issue_ins_btn').addEventListener('click',lookupINS);
-// Auto-lookup on INS input (debounce)
-var insTimer;document.getElementById('issue_ins_input').addEventListener('input',function(){clearTimeout(insTimer);if(this.value.trim().length>=4)insTimer=setTimeout(lookupINS,600);});
-document.getElementById('issue_eid_input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();lookupEID();}});
-document.getElementById('issue_eid_btn').addEventListener('click',lookupEID);
-document.getElementById('issueForm').addEventListener('submit',function(e){
-e.preventDefault();
-var form=this;
-var qty=parseInt(document.getElementById('issue_quantity').value)||0;
-var inStock=parseInt(document.getElementById('issue_in_stock').value)||0;
-if(qty<=0){Swal.fire({icon:'warning',title:'Invalid Quantity',text:'Please enter the quantity to issue.',confirmButtonColor:'#01244d'});return;}
-if(qty>inStock){Swal.fire({icon:'error',title:'Stock Insufficient',text:'Requested qty ('+qty+') exceeds available stock ('+inStock+').',confirmButtonColor:'#dc2626'});return;}
-fetch('save_equipment_issue.php',{method:'POST',body:new FormData(form)})
-.then(r=>r.json())
-.then(data=>{
-if(data.status==='saved'){Swal.fire({icon:'success',title:'Saved!',text:'Equipment issued successfully. Stock updated.',confirmButtonColor:'#01244d',timer:2500,timerProgressBar:true});form.reset();lockEqFields(true);document.getElementById('eid-banner').style.display='none';document.querySelector('input[name="date_out"]').value='<?=date('Y-m-d')?>';}
-else{Swal.fire({icon:'error',title:'Error!',text:data.msg||'Unable to save.',confirmButtonColor:'#dc2626'});}
-}).catch(err=>Swal.fire({icon:'error',title:'Connection Error!',text:'Please try again.',confirmButtonColor:'#dc2626'}));
-});
-</script>
-
-<?php
-//  EQUIPMENT STOCK: ISSUE LIST TABLE
-elseif($current_page=='equipment_stock' && $action=='issue_list'):
-$ei_tbl=@mysqli_query($conn,"SHOW TABLES LIKE 'equipment_issues'");
-$ei_result=null;
-if($ei_tbl&&mysqli_num_rows($ei_tbl)>0){$ei_result=mysqli_query($conn,"SELECT * FROM equipment_issues ORDER BY id DESC");}
-?>
-<div class="page-hdr"><div><h2>Issue List</h2><p>All ICT equipment issue records</p></div><a href="?page=equipment_stock&action=issue_form" class="btn-primary"><i class="fas fa-plus-circle"></i> Issue Equipment</a></div>
-<div class="tbl-wrap">
-<div class="filter-bar">
-<div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="issueSearch" class="filter-input" placeholder="Search INS, name, E ID..."></div>
-</div>
-<div class="tbl-scroll"><table id="issueTable" style="min-width:1400px;">
-<thead><tr>
-<th style="width:50px;">#</th>
-<th>User Name</th><th>INS</th><th>Department</th><th>Team</th>
-<th>Equip ID</th><th>Eng Name</th><th>Lao Name</th>
-<th style="text-align:center;">Quantity</th><th style="text-align:center;">In Stock</th><th style="text-align:center;">E OldStock</th>
-<th>Type</th><th style="text-align:center;">Date Out</th><th style="text-align:center;">Action</th>
-</tr></thead><tbody>
-<?php if($ei_result&&mysqli_num_rows($ei_result)>0):$no=1;while($row=mysqli_fetch_assoc($ei_result)): ?>
-<tr>
-<td style="color:var(--muted);font-weight:700;"><?=$no++?></td>
-<td class="td-bold"><?=htmlspecialchars($row['username']??'')?></td>
-<td class="td-mono"><?=htmlspecialchars($row['ins_number']??'')?></td>
-<td><?=htmlspecialchars($row['department']??'')?></td>
-<td><?=htmlspecialchars($row['team']??'')?></td>
-<td class="td-blue td-bold"><?=htmlspecialchars($row['e_id']??'')?></td>
-<td><?=htmlspecialchars($row['eng_name']??'')?></td>
-<td><?=htmlspecialchars($row['lao_name']??'')?></td>
-<td style="text-align:center;font-weight:700;color:var(--danger);"><?=htmlspecialchars($row['quantity']??0)?></td>
-<td style="text-align:center;font-weight:700;color:var(--navy);"><?=htmlspecialchars($row['in_stock']??0)?></td>
-<td style="text-align:center;font-weight:700;color:var(--blue);"><?=htmlspecialchars($row['e_old_stock']??0)?></td>
-<td><span class="status-pill pill-blue"><?=htmlspecialchars($row['type']??'')?></span></td>
-<td style="text-align:center;font-size:.75rem;"><?=htmlspecialchars($row['date_out']??'')?></td>
-<td style="text-align:center;"><div class="action-btns"><button class="action-btn del" onclick="deleteIssue(<?=$row['id']?>)"><i class="fas fa-trash"></i></button></div></td>
-</tr>
-<?php endwhile;else: ?><tr class="empty-row"><td colspan="14"><i class="fas fa-folder-open"></i>No issue records found</td></tr><?php endif; ?>
-</tbody></table></div></div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-function deleteIssue(id){Swal.fire({title:'Delete this issue record?',text:'This action cannot be undone!',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc2626',cancelButtonColor:'#64748b',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='?page=equipment_stock&action=delete_issue&id='+id;});}
-const _pei=new URLSearchParams(window.location.search);
-if(_pei.get('status')==='deleted'){Swal.fire({title:'Deleted!',text:'Issue record deleted successfully.',icon:'success',timer:2000,showConfirmButton:false});window.history.replaceState({},'',location.pathname+location.search.replace(/&status=[^&]*/,''));}
-if(_pei.get('status')==='saved'){Swal.fire({title:'Saved!',text:'Equipment issue has been recorded.',icon:'success',timer:2200,showConfirmButton:false});}
-document.getElementById('issueSearch').addEventListener('keyup',function(){const v=this.value.toLowerCase();document.querySelectorAll('#issueTable tbody tr:not(.empty-row)').forEach(r=>{r.style.display=r.innerText.toLowerCase().includes(v)?'':'none';});});
-</script>
-
-<?php else: ?>
-                                                                                                                                                                                                                                    <div class="placeholder-card"><i class="fas fa-mouse-pointer"></i><h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:.5rem;">Please Select a Menu</h3><p>Select a menu on the left to manage data.</p></div>
-                                                                                                                                                                                                                                    <?php endif; ?>
-                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                    </div><!-- /content -->
-                                                                                                                                                                                                                                    </main>
-                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                                                                                                                                                                                                                                    <script>
-                                                                                                                                                                                                                                    function toggleSub(id,btn){const el=document.getElementById(id);const grp=btn?btn.closest('.menu-group'):null;if(!el)return;const open=el.style.display==='block';el.style.display=open?'none':'block';if(grp)grp.classList.toggle('menu-open',!open);}
-                                                                                                                                                                                                                                    function updateClock(){const n=new Date();const t=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');const el=document.getElementById('clk');if(el)el.textContent=t;}
-                                                                                                                                                                                                                                    updateClock();setInterval(updateClock,1000);
-                                                                                                                                                                                                                                    function confirmLogout(){Swal.fire({title:'Leave the system?',text:'Do you want to logout from the system?',icon:'question',showCancelButton:true,confirmButtonColor:'#dc2626',cancelButtonColor:'#64748b',confirmButtonText:'<i class="fas fa-right-from-bracket"></i> Logout',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='logout.php';});return false;}
-                                                                                                                                                                                                                                    </script>
-                                                                                                                                                                                                                                    </body>
-                                                                                                                                                                                                                                    </html>
-
+                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                <?php
+                                                                                                                                                                                                                                //  EQUIPMENT STOCK: NEW EQUIPMENT FORM
+                                                                                                                                                                                                                                elseif($current_page=='equipment_stock' && $action=='form'):
+                                                                                                                                                                                                                                    $eq_edit=null; $eq_is_edit=false;
+                                                                                                                                                                                                                                    if(isset($_GET['eq_id'])&&!empty($_GET['eq_id'])){
+                                                                                                                                                                                                                                    $eq_eid=(int)($_GET[array_key_exists("eq_id",$_GET)?"eq_id":"id"]??0);
+                                                                                                                                                                                                                                    $tc=@mysqli_query($conn,"SHOW TABLES LIKE 'equipment_stock'");
+                                                                                                                                                                                                                                    if($tc&&mysqli_num_rows($tc)>0){$er=@mysqli_query($conn,"SELECT * FROM equipment_stock WHERE id='$eq_eid'");if($er&&($ed=mysqli_fetch_assoc($er))){$eq_edit=$ed;$eq_is_edit=true;}}
+                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                    ?>
+                                                                                                                                                                                                                                    <div class="form-wrap">
+                                                                                                                                                                                                                                    <div class="form-header"><div class="form-header-icon"><i class="fas fa-boxes-stacked"></i></div><div><h3><?=$eq_is_edit?'Edit Equipment':'New Equipment'?></h3><p>Record ICT equipment stock information</p></div></div>
+                                                                                                                                                                                                                                    <div class="form-body">
+                                                                                                                                                                                                                                    <form id="equipForm" method="POST">
+                                                                                                                                                                                                                                    <?php if($eq_is_edit): ?><input type="hidden" name="eq_id" value="<?=$eq_edit['id']?>"><?php endif; ?>
+                                                                                                                                                                                                                                        <div class="form-section">
+                                                                                                                                                                                                                                        <div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">1</div><p>Equipment Information</p></div>
+                                                                                                                                                                                                                                        <div class="form-grid g3">
+                                                                                                                                                                                                                                        <div><label class="field-lbl">E ID <span>*</span></label><div class="field-wrap"><i class="fas fa-barcode fi"></i><input type="text" name="e_id" id="eq_e_id" class="field" placeholder="Equipment ID" value="<?=htmlspecialchars($eq_edit['e_id']??'')?>" required></div></div>
+                                                                                                                                                                                                                                        <div><label class="field-lbl">Eng Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="eng_name" class="field" placeholder="English name" value="<?=htmlspecialchars($eq_edit['eng_name']??'')?>"></div></div>
+                                                                                                                                                                                                                                        <div><label class="field-lbl">Lao Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="lao_name" class="field" placeholder="Lao name" value="<?=htmlspecialchars($eq_edit['lao_name']??'')?>"></div></div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <div class="form-section">
+                                                                                                                                                                                                                                        <div class="form-section-hdr"><div class="step-badge" style="background:#dcfce7;color:#15803d;">2</div><p>Stock Quantities &amp; Details</p></div>
+                                                                                                                                                                                                                                        <div class="form-grid g4">
+                                                                                                                                                                                                                                        <div><label class="field-lbl">E New (Qty In)</label><div class="field-wrap"><i class="fas fa-plus-circle fi"></i><input type="number" name="e_new" id="eq_e_new" class="field" placeholder="0" value="<?=htmlspecialchars($eq_edit['e_new']??'0')?>" min="0" oninput="calcAllStock()"></div></div>
+                                                                                                                                                                                                                                        <div><label class="field-lbl">All Stock</label><div class="field-wrap"><i class="fas fa-layer-group fi"></i><input type="number" name="all_stock" id="eq_all_stock" class="field" placeholder="0" value="<?=htmlspecialchars($eq_edit['all_stock']??'0')?>" readonly style="background:#f0f4fb;"></div></div>
+                                                                                                                                                                                                                                        <div><label class="field-lbl">Type</label><div class="field-wrap"><i class="fas fa-laptop fi"></i><select name="type" class="field"><?php foreach(["unit","line","en","set","Piece","Other"] as $t){$sel=(isset($eq_edit['type'])&&$eq_edit['type']==$t)?'selected':'';echo "<option value='$t' $sel>$t</option>";}?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
+                                                                                                                                                                                                                                        <div><label class="field-lbl">Date In</label><div class="field-wrap"><i class="fas fa-calendar-plus fi"></i><input type="date" name="date_in" class="field" value="<?=htmlspecialchars($eq_edit['date_in']??'')?>"></div></div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <button type="submit" class="btn-submit"><i class="fas fa-save"></i><?=$eq_is_edit?'Update Equipment':'Save Equipment'?></button>
+                                                                                                                                                                                                                                        </form>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                                                                                                                                                                                                                        <script>
+                                                                                                                                                                                                                                        var _isEdit = <?=$eq_is_edit?'true':'false'?>;
+                                                                                                                                                                                                                                        var _origENew = <?=(int)($eq_edit['e_new']??0)?>;
+                                                                                                                                                                                                                                        var _origAllStock = <?=(int)($eq_edit['all_stock']??0)?>;
+                                                                                                                                                                                                                                        function calcAllStock(){
+                                                                                                                                                                                                                                        var eNew=parseInt(document.getElementById('eq_e_new').value)||0;
+                                                                                                                                                                                                                                        var newAll;
+                                                                                                                                                                                                                                        if(_isEdit){
+                                                                                                                                                                                                                                        // preserve stock already issued: all_stock = old_all + (new_e_new - old_e_new)
+                                                                                                                                                                                                                                        newAll=Math.max(0,_origAllStock+(eNew-_origENew));
+                                                                                                                                                                                                                                        }else{
+                                                                                                                                                                                                                                        newAll=Math.max(0,eNew);
+                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                        document.getElementById('eq_all_stock').value=newAll;
+                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                        calcAllStock();
+                                                                                                                                                                                                                                        document.getElementById('equipForm').addEventListener('submit',function(e){
+                                                                                                                                                                                                                                        e.preventDefault();
+                                                                                                                                                                                                                                        var form=this;
+                                                                                                                                                                                                                                        fetch('save_equipment.php',{method:'POST',body:new FormData(form)})
+                                                                                                                                                                                                                                        .then(r=>r.json())
+                                                                                                                                                                                                                                        .then(data=>{
+                                                                                                                                                                                                                                        if(data.status==='saved'){Swal.fire({icon:'success',title:'Saved!',text:'Equipment has been saved.',confirmButtonColor:'#01244d',timer:2500,timerProgressBar:true});form.reset();document.getElementById('eq_all_stock').value=0;}
+                                                                                                                                                                                                                                        else if(data.status==='updated'){Swal.fire({icon:'success',title:'Updated!',text:'Equipment has been updated.',confirmButtonColor:'#01244d',timer:2500,timerProgressBar:true});}
+                                                                                                                                                                                                                                        else{Swal.fire({icon:'error',title:'Error!',text:data.msg||'Unable to save.',confirmButtonColor:'#dc2626'});}
+                                                                                                                                                                                                                                        }).catch(err=>Swal.fire({icon:'error',title:'Connection Error!',text:'Please try again.',confirmButtonColor:'#dc2626'}));
+                                                                                                                                                                                                                                        });
+                                                                                                                                                                                                                                        </script>
+                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                        <?php
+                                                                                                                                                                                                                                        //  EQUIPMENT STOCK: ALL EQUIPMENT TABLE
+                                                                                                                                                                                                                                        elseif($current_page=='equipment_stock' && $action=='list'):
+                                                                                                                                                                                                                                            $eq_tbl=@mysqli_query($conn,"SHOW TABLES LIKE 'equipment_stock'");
+                                                                                                                                                                                                                                            $eq_result=null;
+                                                                                                                                                                                                                                            if($eq_tbl&&mysqli_num_rows($eq_tbl)>0){$eq_result=mysqli_query($conn,"SELECT * FROM equipment_stock ORDER BY id DESC");}
+                                                                                                                                                                                                                                            ?>
+                                                                                                                                                                                                                                            <div class="page-hdr"><div><h2>All Equipment Stock</h2><p>All ICT equipment stock records</p></div><a href="?page=equipment_stock&action=form" class="btn-primary"><i class="fas fa-plus-circle"></i> New Equipment</a></div>
+                                                                                                                                                                                                                                            <div class="tbl-wrap">
+                                                                                                                                                                                                                                            <div class="filter-bar">
+                                                                                                                                                                                                                                            <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="equipSearch" class="filter-input" placeholder="Search E ID, name..."></div>
+                                                                                                                                                                                                                                            <select id="typeFilter" class="filter-select"><option value="">All Types</option><?php foreach(["Computer","Monitor","Printer","Scanner","Projector","UPS","Switch","Router","Cable","Other"] as $t) echo "<option value='$t'>$t</option>"; ?></select>
+                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                            <div class="tbl-scroll"><table id="equipTable" style="min-width:1100px;">
+                                                                                                                                                                                                                                            <thead><tr>
+                                                                                                                                                                                                                                            <th style="width:50px;">#</th>
+                                                                                                                                                                                                                                            <th>E ID</th><th>Eng Name</th><th>Lao Name</th>
+                                                                                                                                                                                                                                            <th style="text-align:center;">E OldStock</th><th style="text-align:center;">All Stock</th>
+                                                                                                                                                                                                                                            <th>Type</th><th style="text-align:center;">Date In</th><th style="text-align:center;">Created At</th><th style="text-align:center;">Action</th>
+                                                                                                                                                                                                                                            </tr></thead><tbody>
+                                                                                                                                                                                                                                            <?php if($eq_result&&mysqli_num_rows($eq_result)>0):$no=1;while($row=mysqli_fetch_assoc($eq_result)): ?>
+                                                                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                                                                <td style="color:var(--muted);font-weight:700;"><?=$no++?></td>
+                                                                                                                                                                                                                                                <td class="td-blue td-bold"><?=htmlspecialchars($row['e_id']??'')?></td>
+                                                                                                                                                                                                                                                <td class="td-bold"><?=htmlspecialchars($row['eng_name']??'')?></td>
+                                                                                                                                                                                                                                                <td><?=htmlspecialchars($row['lao_name']??'')?></td>
+                                                                                                                                                                                                                                                <td style="text-align:center;"><?=htmlspecialchars($row['e_new']??0)?></td>
+                                                                                                                                                                                                                                                <td style="text-align:center;font-weight:700;color:var(--navy);"><?=htmlspecialchars($row['all_stock']??0)?></td>
+                                                                                                                                                                                                                                                <td><span class="status-pill pill-blue"><?=htmlspecialchars($row['type']??'')?></span></td>
+                                                                                                                                                                                                                                                <td style="text-align:center;font-size:.75rem;"><?=htmlspecialchars($row['date_in']??'')?></td>
+                                                                                                                                                                                                                                                <td style="text-align:center;font-size:.75rem;"><?=htmlspecialchars($row['created_at']??'')?></td>
+                                                                                                                                                                                                                                                <td style="text-align:center;"><div class="action-btns"><a href="?page=equipment_stock&action=form&eq_id=<?=$row['id']?>" class="action-btn edit"><i class="fas fa-edit"></i></a><button class="action-btn del" onclick="deleteEquipment(<?=$row['id']?>)"><i class="fas fa-trash"></i></button></div></td>
+                                                                                                                                                                                                                                                </tr>
+                                                                                                                                                                                                                                                <?php endwhile;else: ?><tr class="empty-row"><td colspan="10"><i class="fas fa-boxes-stacked"></i>No equipment records found</td></tr><?php endif; ?>
+                                                                                                                                                                                                                                                    </tbody></table></div></div>
+                                                                                                                                                                                                                                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                                                                                                                                                                                                                                    <script>
+                                                                                                                                                                                                                                                    function deleteEquipment(id){Swal.fire({title:'Delete this equipment?',text:'This action cannot be undone!',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc2626',cancelButtonColor:'#64748b',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='?page=equipment_stock&action=delete&id='+id;});}
+                                                                                                                                                                                                                                                    const _peq=new URLSearchParams(window.location.search);
+                                                                                                                                                                                                                                                    if(_peq.get('status')==='deleted'){Swal.fire({title:'Deleted!',text:'Equipment deleted successfully.',icon:'success',timer:2000,showConfirmButton:false});window.history.replaceState({},'',location.pathname+location.search.replace(/&status=[^&]*/,''));}
+                                                                                                                                                                                                                                                    document.getElementById('equipSearch').addEventListener('keyup',function(){
+                                                                                                                                                                                                                                                    var v=this.value.toLowerCase();
+                                                                                                                                                                                                                                                    var tf=document.getElementById('typeFilter').value;
+                                                                                                                                                                                                                                                    document.querySelectorAll('#equipTable tbody tr:not(.empty-row)').forEach(function(r){
+                                                                                                                                                                                                                                                    var cells=r.querySelectorAll('td');
+                                                                                                                                                                                                                                                    var eid=(cells[1]?cells[1].textContent:'').toLowerCase();
+                                                                                                                                                                                                                                                    var eng=(cells[2]?cells[2].textContent:'').toLowerCase();
+                                                                                                                                                                                                                                                    var lao=(cells[3]?cells[3].textContent:'').toLowerCase();
+                                                                                                                                                                                                                                                    var type=(cells[6]?cells[6].textContent:'').trim();
+                                                                                                                                                                                                                                                    var matchSearch=!v||(eid.includes(v)||eng.includes(v)||lao.includes(v));
+                                                                                                                                                                                                                                                    var matchType=!tf||type.includes(tf);
+                                                                                                                                                                                                                                                    r.style.display=(matchSearch&&matchType)?'':'none';
+                                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                                    document.getElementById('typeFilter').addEventListener('change',function(){
+                                                                                                                                                                                                                                                    var tf=this.value;
+                                                                                                                                                                                                                                                    var v=document.getElementById('equipSearch').value.toLowerCase();
+                                                                                                                                                                                                                                                    document.querySelectorAll('#equipTable tbody tr:not(.empty-row)').forEach(function(r){
+                                                                                                                                                                                                                                                    var cells=r.querySelectorAll('td');
+                                                                                                                                                                                                                                                    var eid=(cells[1]?cells[1].textContent:'').toLowerCase();
+                                                                                                                                                                                                                                                    var eng=(cells[2]?cells[2].textContent:'').toLowerCase();
+                                                                                                                                                                                                                                                    var lao=(cells[3]?cells[3].textContent:'').toLowerCase();
+                                                                                                                                                                                                                                                    var type=(cells[6]?cells[6].textContent:'').trim();
+                                                                                                                                                                                                                                                    var matchSearch=!v||(eid.includes(v)||eng.includes(v)||lao.includes(v));
+                                                                                                                                                                                                                                                    var matchType=!tf||type.includes(tf);
+                                                                                                                                                                                                                                                    r.style.display=(matchSearch&&matchType)?'':'none';
+                                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                                    </script>
+                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                    <?php
+                                                                                                                                                                                                                                                    //  EQUIPMENT STOCK: ISSUE EQUIPMENT FORM
+                                                                                                                                                                                                                                                    elseif($current_page=='equipment_stock' && $action=='issue_form'):
+                                                                                                                                                                                                                                                        ?>
+                                                                                                                                                                                                                                                        <div id="eid-banner" style="display:none;margin-bottom:1rem;padding:.75rem 1.125rem;border-radius:10px;font-size:.8rem;font-weight:600;background:#ffedd5;color:#c2410c;border:1px solid #fed7aa;"></div>
+                                                                                                                                                                                                                                                        <div class="form-wrap">
+                                                                                                                                                                                                                                                        <div class="form-header"><div class="form-header-icon"><i class="fas fa-share-square"></i></div><div><h3>Issue Equipment</h3><p>Record equipment issued to a staff member</p></div></div>
+                                                                                                                                                                                                                                                        <div class="form-body">
+                                                                                                                                                                                                                                                        <form id="issueForm" method="POST">
+                                                                                                                                                                                                                                                        <div class="form-section">
+                                                                                                                                                                                                                                                        <div class="form-section-hdr"><div class="step-badge" style="background:#dbeafe;color:#1d4ed8;">1</div><p>Staff Information &nbsp;<span style="font-size:.62rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(Scan/Enter INS to auto-fill)</span></p></div>
+                                                                                                                                                                                                                                                        <div class="form-grid g4">
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">User Name</label><div class="field-wrap"><i class="fas fa-user fi"></i><input type="text" name="username" id="issue_username" class="field" placeholder="Auto-filled"></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">INS Number <span>*</span></label><div class="field-wrap" style="display:flex;gap:.4rem;align-items:center;"><i class="fas fa-id-card fi"></i><input type="text" id="issue_ins_input" name="ins_number" class="field" placeholder="Scan or type INS" style="flex:1;" required><button type="button" id="issue_ins_btn" style="padding:.65rem .75rem;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.72rem;cursor:pointer;flex-shrink:0;"><i class="fas fa-search"></i></button></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Department</label><div class="field-wrap"><i class="fas fa-sitemap fi"></i><select name="department" id="issue_department" class="field"><option value="" disabled selected>Select Department</option><?php foreach(["Finance","Operation","Fleet","Logistic","HR","Liaison","GIS","Electrician","ICT","Translator","Eore","Expat"] as $d) echo "<option value='$d'>$d</option>"; ?></select><i class="fas fa-chevron-down select-arrow"></i></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Team</label><div class="field-wrap"><i class="fas fa-users fi"></i><input type="text" name="team" id="issue_team" class="field" placeholder="Auto-filled"></div></div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        <div class="form-section">
+                                                                                                                                                                                                                                                        <div class="form-section-hdr"><div class="step-badge" style="background:#dcfce7;color:#15803d;">2</div><p>Equipment Information &nbsp;<span style="font-size:.62rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(Enter Equip ID to auto-fill)</span></p></div>
+                                                                                                                                                                                                                                                        <div class="form-grid g4">
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Equip ID <span>*</span></label><div class="field-wrap" style="display:flex;gap:.4rem;align-items:center;"><i class="fas fa-barcode fi"></i><input type="text" id="issue_eid_input" name="e_id" class="field" placeholder="Equipment ID" style="flex:1;" required><button type="button" id="issue_eid_btn" style="padding:.65rem .75rem;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.72rem;cursor:pointer;flex-shrink:0;"><i class="fas fa-search"></i></button></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Eng Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="eng_name" id="issue_eng_name" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Lao Name</label><div class="field-wrap"><i class="fas fa-tag fi"></i><input type="text" name="lao_name" id="issue_lao_name" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">In Stock (All)</label><div class="field-wrap"><i class="fas fa-layer-group fi"></i><input type="number" name="in_stock" id="issue_in_stock" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">E OldStock</label><div class="field-wrap"><i class="fas fa-box fi"></i><input type="number" name="e_old_stock" id="issue_e_old_stock" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Type</label><div class="field-wrap"><i class="fas fa-laptop fi"></i><input type="text" name="type" id="issue_type" class="field" placeholder="Auto-filled" readonly style="background:#f0f4fb;"></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Quantity Issue <span>*</span></label><div class="field-wrap"><i class="fas fa-hashtag fi"></i><input type="number" name="quantity" id="issue_quantity" class="field" placeholder="Qty to issue" min="1" required></div></div>
+                                                                                                                                                                                                                                                        <div><label class="field-lbl">Date Out</label><div class="field-wrap"><i class="fas fa-calendar-minus fi"></i><input type="date" name="date_out" class="field" value="<?=date('Y-m-d')?>"></div></div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        <button type="submit" class="btn-submit"><i class="fas fa-share-square"></i> Issue Equipment</button>
+                                                                                                                                                                                                                                                        </form>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                                                                                                                                                                                                                                        <script>
+                                                                                                                                                                                                                                                        function setIssueField(id,val){var el=document.getElementById(id);if(el)el.value=val||'';}
+                                                                                                                                                                                                                                                        function lockEqFields(lock){
+                                                                                                                                                                                                                                                        ['issue_eng_name','issue_lao_name','issue_in_stock','issue_e_old_stock','issue_type'].forEach(function(id){
+                                                                                                                                                                                                                                                        var el=document.getElementById(id);if(!el)return;
+                                                                                                                                                                                                                                                        el.readOnly=lock;el.style.background=lock?'#f0f4fb':'#fff';
+                                                                                                                                                                                                                                                        });
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                        function lookupINS(){
+                                                                                                                                                                                                                                                        var ins=document.getElementById('issue_ins_input').value.trim();
+                                                                                                                                                                                                                                                        if(!ins)return;
+                                                                                                                                                                                                                                                        fetch('index.php?lookup_ins=1&ins_number='+encodeURIComponent(ins))
+                                                                                                                                                                                                                                                        .then(r=>r.json()).then(data=>{
+                                                                                                                                                                                                                                                        if(data.status==='found'){
+                                                                                                                                                                                                                                                        var d=data.data;
+                                                                                                                                                                                                                                                        setIssueField('issue_username',d.username||d.full_name||'');
+                                                                                                                                                                                                                                                        setIssueField('issue_team',d.team||'');
+                                                                                                                                                                                                                                                        var dept=document.getElementById('issue_department');
+                                                                                                                                                                                                                                                        if(dept&&d.department){for(var i=0;i<dept.options.length;i++){if(dept.options[i].value===d.department){dept.selectedIndex=i;break;}}}
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                        }).catch(()=>{});
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                        function lookupEID(){
+                                                                                                                                                                                                                                                        var eid=document.getElementById('issue_eid_input').value.trim();
+                                                                                                                                                                                                                                                        if(!eid)return;
+                                                                                                                                                                                                                                                        var banner=document.getElementById('eid-banner');
+                                                                                                                                                                                                                                                        fetch('index.php?lookup_eid=1&e_id='+encodeURIComponent(eid))
+                                                                                                                                                                                                                                                        .then(r=>r.json()).then(data=>{
+                                                                                                                                                                                                                                                        if(data.status==='found'){
+                                                                                                                                                                                                                                                        var d=data.data;
+                                                                                                                                                                                                                                                        setIssueField('issue_eng_name',d.eng_name);
+                                                                                                                                                                                                                                                        setIssueField('issue_lao_name',d.lao_name);
+                                                                                                                                                                                                                                                        setIssueField('issue_in_stock',d.all_stock);
+                                                                                                                                                                                                                                                        setIssueField('issue_e_old_stock',d.e_new);
+                                                                                                                                                                                                                                                        setIssueField('issue_type',d.type);
+                                                                                                                                                                                                                                                        lockEqFields(true);
+                                                                                                                                                                                                                                                        banner.style.display='none';
+                                                                                                                                                                                                                                                        }else{
+                                                                                                                                                                                                                                                        banner.style.display='block';
+                                                                                                                                                                                                                                                        banner.innerHTML='<i class="fas fa-exclamation-triangle"></i> Equipment not found â€” fill manually';
+                                                                                                                                                                                                                                                        lockEqFields(false);
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                        }).catch(()=>{});
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                        document.getElementById('issue_ins_input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();lookupINS();}});
+                                                                                                                                                                                                                                                        document.getElementById('issue_ins_btn').addEventListener('click',lookupINS);
+                                                                                                                                                                                                                                                        // Auto-lookup on INS input (debounce)
+                                                                                                                                                                                                                                                        var insTimer;document.getElementById('issue_ins_input').addEventListener('input',function(){clearTimeout(insTimer);if(this.value.trim().length>=4)insTimer=setTimeout(lookupINS,600);});
+                                                                                                                                                                                                                                                        document.getElementById('issue_eid_input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();lookupEID();}});
+                                                                                                                                                                                                                                                        document.getElementById('issue_eid_btn').addEventListener('click',lookupEID);
+                                                                                                                                                                                                                                                        document.getElementById('issueForm').addEventListener('submit',function(e){
+                                                                                                                                                                                                                                                        e.preventDefault();
+                                                                                                                                                                                                                                                        var form=this;
+                                                                                                                                                                                                                                                        var qty=parseInt(document.getElementById('issue_quantity').value)||0;
+                                                                                                                                                                                                                                                        var inStock=parseInt(document.getElementById('issue_in_stock').value)||0;
+                                                                                                                                                                                                                                                        if(qty<=0){Swal.fire({icon:'warning',title:'Invalid Quantity',text:'Please enter the quantity to issue.',confirmButtonColor:'#01244d'});return;}
+                                                                                                                                                                                                                                                        if(qty>inStock){Swal.fire({icon:'error',title:'Stock Insufficient',text:'Requested qty ('+qty+') exceeds available stock ('+inStock+').',confirmButtonColor:'#dc2626'});return;}
+                                                                                                                                                                                                                                                        fetch('save_equipment_issue.php',{method:'POST',body:new FormData(form)})
+                                                                                                                                                                                                                                                        .then(r=>r.json())
+                                                                                                                                                                                                                                                        .then(data=>{
+                                                                                                                                                                                                                                                        if(data.status==='saved'){Swal.fire({icon:'success',title:'Saved!',text:'Equipment issued successfully. Stock updated.',confirmButtonColor:'#01244d',timer:2500,timerProgressBar:true});form.reset();lockEqFields(true);document.getElementById('eid-banner').style.display='none';document.querySelector('input[name="date_out"]').value='<?=date('Y-m-d')?>';}
+                                                                                                                                                                                                                                                        else{Swal.fire({icon:'error',title:'Error!',text:data.msg||'Unable to save.',confirmButtonColor:'#dc2626'});}
+                                                                                                                                                                                                                                                        }).catch(err=>Swal.fire({icon:'error',title:'Connection Error!',text:'Please try again.',confirmButtonColor:'#dc2626'}));
+                                                                                                                                                                                                                                                        });
+                                                                                                                                                                                                                                                        </script>
+                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                        <?php
+                                                                                                                                                                                                                                                        //  EQUIPMENT STOCK: ISSUE LIST TABLE
+                                                                                                                                                                                                                                                        elseif($current_page=='equipment_stock' && $action=='issue_list'):
+                                                                                                                                                                                                                                                            $ei_tbl=@mysqli_query($conn,"SHOW TABLES LIKE 'equipment_issues'");
+                                                                                                                                                                                                                                                            $ei_result=null;
+                                                                                                                                                                                                                                                            if($ei_tbl&&mysqli_num_rows($ei_tbl)>0){$ei_result=mysqli_query($conn,"SELECT * FROM equipment_issues ORDER BY id DESC");}
+                                                                                                                                                                                                                                                            ?>
+                                                                                                                                                                                                                                                            <div class="page-hdr"><div><h2>Issue List</h2><p>All ICT equipment issue records</p></div><a href="?page=equipment_stock&action=issue_form" class="btn-primary"><i class="fas fa-plus-circle"></i> Issue Equipment</a></div>
+                                                                                                                                                                                                                                                            <div class="tbl-wrap">
+                                                                                                                                                                                                                                                            <div class="filter-bar">
+                                                                                                                                                                                                                                                            <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="issueSearch" class="filter-input" placeholder="Search INS, name, E ID..."></div>
+                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                            <div class="tbl-scroll"><table id="issueTable" style="min-width:1400px;">
+                                                                                                                                                                                                                                                            <thead><tr>
+                                                                                                                                                                                                                                                            <th style="width:50px;">#</th>
+                                                                                                                                                                                                                                                            <th>User Name</th><th>INS</th><th>Department</th><th>Team</th>
+                                                                                                                                                                                                                                                            <th>Equip ID</th><th>Eng Name</th><th>Lao Name</th>
+                                                                                                                                                                                                                                                            <th style="text-align:center;">Quantity</th><th style="text-align:center;">In Stock</th><th style="text-align:center;">E OldStock</th>
+                                                                                                                                                                                                                                                            <th>Type</th><th style="text-align:center;">Date Out</th><th style="text-align:center;">Action</th>
+                                                                                                                                                                                                                                                            </tr></thead><tbody>
+                                                                                                                                                                                                                                                            <?php if($ei_result&&mysqli_num_rows($ei_result)>0):$no=1;while($row=mysqli_fetch_assoc($ei_result)): ?>
+                                                                                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                                                                                <td style="color:var(--muted);font-weight:700;"><?=$no++?></td>
+                                                                                                                                                                                                                                                                <td class="td-bold"><?=htmlspecialchars($row['username']??'')?></td>
+                                                                                                                                                                                                                                                                <td class="td-mono"><?=htmlspecialchars($row['ins_number']??'')?></td>
+                                                                                                                                                                                                                                                                <td><?=htmlspecialchars($row['department']??'')?></td>
+                                                                                                                                                                                                                                                                <td><?=htmlspecialchars($row['team']??'')?></td>
+                                                                                                                                                                                                                                                                <td class="td-blue td-bold"><?=htmlspecialchars($row['e_id']??'')?></td>
+                                                                                                                                                                                                                                                                <td><?=htmlspecialchars($row['eng_name']??'')?></td>
+                                                                                                                                                                                                                                                                <td><?=htmlspecialchars($row['lao_name']??'')?></td>
+                                                                                                                                                                                                                                                                <td style="text-align:center;font-weight:700;color:var(--danger);"><?=htmlspecialchars($row['quantity']??0)?></td>
+                                                                                                                                                                                                                                                                <td style="text-align:center;font-weight:700;color:var(--navy);"><?=htmlspecialchars($row['in_stock']??0)?></td>
+                                                                                                                                                                                                                                                                <td style="text-align:center;font-weight:700;color:var(--blue);"><?=htmlspecialchars($row['e_old_stock']??0)?></td>
+                                                                                                                                                                                                                                                                <td><span class="status-pill pill-blue"><?=htmlspecialchars($row['type']??'')?></span></td>
+                                                                                                                                                                                                                                                                <td style="text-align:center;font-size:.75rem;"><?=htmlspecialchars($row['date_out']??'')?></td>
+                                                                                                                                                                                                                                                                <td style="text-align:center;"><div class="action-btns"><button class="action-btn del" onclick="deleteIssue(<?=$row['id']?>)"><i class="fas fa-trash"></i></button></div></td>
+                                                                                                                                                                                                                                                                </tr>
+                                                                                                                                                                                                                                                                <?php endwhile;else: ?><tr class="empty-row"><td colspan="14"><i class="fas fa-folder-open"></i>No issue records found</td></tr><?php endif; ?>
+                                                                                                                                                                                                                                                                    </tbody></table></div></div>
+                                                                                                                                                                                                                                                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                                                                                                                                                                                                                                                    <script>
+                                                                                                                                                                                                                                                                    function deleteIssue(id){Swal.fire({title:'Delete this issue record?',text:'This action cannot be undone!',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc2626',cancelButtonColor:'#64748b',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='?page=equipment_stock&action=delete_issue&id='+id;});}
+                                                                                                                                                                                                                                                                    const _pei=new URLSearchParams(window.location.search);
+                                                                                                                                                                                                                                                                    if(_pei.get('status')==='deleted'){Swal.fire({title:'Deleted!',text:'Issue record deleted successfully.',icon:'success',timer:2000,showConfirmButton:false});window.history.replaceState({},'',location.pathname+location.search.replace(/&status=[^&]*/,''));}
+                                                                                                                                                                                                                                                                    if(_pei.get('status')==='saved'){Swal.fire({title:'Saved!',text:'Equipment issue has been recorded.',icon:'success',timer:2200,showConfirmButton:false});}
+                                                                                                                                                                                                                                                                    document.getElementById('issueSearch').addEventListener('keyup',function(){const v=this.value.toLowerCase();document.querySelectorAll('#issueTable tbody tr:not(.empty-row)').forEach(r=>{r.style.display=r.innerText.toLowerCase().includes(v)?'':'none';});});
+                                                                                                                                                                                                                                                                    </script>
+                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                    <?php else: ?>
+                                                                                                                                                                                                                                                                        <div class="placeholder-card"><i class="fas fa-mouse-pointer"></i><h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:.5rem;">Please Select a Menu</h3><p>Select a menu on the left to manage data.</p></div>
+                                                                                                                                                                                                                                                                        <?php endif; ?>
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                        </div><!-- /content -->
+                                                                                                                                                                                                                                                                        </main>
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                                                                                                                                                                                                                                                        <script>
+                                                                                                                                                                                                                                                                        function toggleSub(id,btn){const el=document.getElementById(id);const grp=btn?btn.closest('.menu-group'):null;if(!el)return;const open=el.style.display==='block';el.style.display=open?'none':'block';if(grp)grp.classList.toggle('menu-open',!open);}
+                                                                                                                                                                                                                                                                        function updateClock(){const n=new Date();const t=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');const el=document.getElementById('clk');if(el)el.textContent=t;}
+                                                                                                                                                                                                                                                                        updateClock();setInterval(updateClock,1000);
+                                                                                                                                                                                                                                                                        function confirmLogout(){Swal.fire({title:'Leave the system?',text:'Do you want to logout from the system?',icon:'question',showCancelButton:true,confirmButtonColor:'#dc2626',cancelButtonColor:'#64748b',confirmButtonText:'<i class="fas fa-right-from-bracket"></i> Logout',cancelButtonText:'Cancel',reverseButtons:true}).then(r=>{if(r.isConfirmed)window.location.href='logout.php';});return false;}
+                                                                                                                                                                                                                                                                        </script>
+                                                                                                                                                                                                                                                                        </body>
+                                                                                                                                                                                                                                                                        </html>
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                        
